@@ -15,7 +15,7 @@
 const admin = require("firebase-admin");
 const products = require("./products");
 
-const FIRESTORE_PROJECT_ID = "tu-project-id-aqui"; // <-- COMPLETAR
+const FIRESTORE_PROJECT_ID = "fir-bd-35991";
 
 admin.initializeApp({
   credential: admin.credential.cert("serviceAccountKey.json"),
