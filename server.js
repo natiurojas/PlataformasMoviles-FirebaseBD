@@ -3,7 +3,6 @@
 //  Uso: npm install && npm start
 // =====================================================
 
-const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const admin = require("firebase-admin");
@@ -16,7 +15,6 @@ admin.initializeApp({
 const db = admin.firestore();
 const app = express();
 const PORT = process.env.PORT || 3000;
-const LOG_FILE = path.join(__dirname, "requests.log");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -31,9 +29,8 @@ function parseValue(value) {
 
 app.post("/add-product", async (req, res) => {
   try {
-    fs.appendFileSync(LOG_FILE, new Date().toISOString() + " " + JSON.stringify(req.body) + "\n");
-    const claves = req.body.clave || [];
-    const valores = req.body.valor || [];
+    const claves = req.body["clave[]"] || req.body.clave || [];
+    const valores = req.body["valor[]"] || req.body.valor || [];
 
     const data = {};
     for (let i = 0; i < claves.length; i++) {

@@ -133,7 +133,7 @@
   <div class="card">
     <span class="badge">Firestore &bull; productos</span>
     <h1>Cargar nuevo producto</h1>
-    <p class="hint">M&aacute;ximo 5 atributos. La primera fila es el <b>nombre</b> del producto.</p>
+    <p class="hint">M&aacute;ximo 5 atributos. Izquierda = atributo (edit&aacute; si hace falta), derecha = su valor. La primera fila es el <b>nombre</b>.</p>
 
     <form method="POST" action="/add-product" id="form">
       <div id="rows">
@@ -142,11 +142,11 @@
           <input type="text" name="valor[]" placeholder="Nombre del producto" required>
         </div>
         <div class="row">
-          <input type="text" name="clave[]" placeholder="precio">
+          <input type="text" name="clave[]" value="precio" readonly>
           <input type="text" name="valor[]" placeholder="Valor (ej: 499)">
         </div>
         <div class="row">
-          <input type="text" name="clave[]" placeholder="color">
+          <input type="text" name="clave[]" value="color" readonly>
           <input type="text" name="valor[]" placeholder="Valor (ej: Negro)">
         </div>
       </div>
@@ -162,6 +162,8 @@
   <script>
     const rows = document.getElementById("rows");
     const counter = document.getElementById("counter");
+    const DEFAULT_KEYS = ["modelo", "stock", "garantia", "bateria"];
+    let addCount = 0;
 
     function updateCounter() {
       counter.textContent = rows.children.length;
@@ -171,7 +173,7 @@
       const row = document.createElement("div");
       row.className = "row";
       const k = document.createElement("input");
-      k.type = "text"; k.name = "clave[]"; k.placeholder = emptyKey;
+      k.type = "text"; k.name = "clave[]"; k.value = emptyKey;
       const v = document.createElement("input");
       v.type = "text"; v.name = "valor[]"; v.placeholder = emptyVal;
       row.appendChild(k); row.appendChild(v);
@@ -184,7 +186,9 @@
         alert("Máximo 5 atributos por producto.");
         return;
       }
-      addRow("modelo", "Valor");
+      const key = DEFAULT_KEYS[addCount % DEFAULT_KEYS.length];
+      addCount++;
+      addRow(key, "Valor");
     });
   </script>
 </body>
