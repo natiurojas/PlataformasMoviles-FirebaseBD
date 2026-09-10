@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Cargar Producto - Firestore</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 520px; margin: 40px auto; }
+    h1 { font-size: 1.4rem; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .row input { padding: 8px; font-size: 1rem; }
+    .row input[name="clave[]"] { width: 130px; }
+    .row input[name="valor[]"] { flex: 1; }
+    button { padding: 10px 16px; font-size: 1rem; cursor: pointer; }
+    .hint { color: #666; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <h1>Cargar nuevo producto</h1>
+  <p class="hint">M&aacute;ximo 5 atributos. La primera fila es el <b>nombre</b> del producto.</p>
+
+  <form method="POST" action="/add-product" id="form">
+    <div id="rows">
+      <div class="row">
+        <input type="text" name="clave[]" value="nombre" readonly>
+        <input type="text" name="valor[]" placeholder="Nombre del producto" required>
+      </div>
+      <div class="row">
+        <input type="text" name="clave[]" placeholder="precio">
+        <input type="text" name="valor[]" placeholder="Valor (ej: 499)">
+      </div>
+      <div class="row">
+        <input type="text" name="clave[]" placeholder="color">
+        <input type="text" name="valor[]" placeholder="Valor (ej: Negro)">
+      </div>
+    </div>
+    <button type="button" id="addRow">+ agregar atributo</button>
+    <br><br>
+    <button type="submit">Guardar producto</button>
+  </form>
+
+  <script>
+    const rows = document.getElementById("rows");
+
+    function addRow(emptyKey, emptyVal) {
+      const row = document.createElement("div");
+      row.className = "row";
+      const k = document.createElement("input");
+      k.type = "text"; k.name = "clave[]"; k.placeholder = emptyKey;
+      const v = document.createElement("input");
+      v.type = "text"; v.name = "valor[]"; v.placeholder = emptyVal;
+      row.appendChild(k); row.appendChild(v);
+      rows.appendChild(row);
+    }
+
+    document.getElementById("addRow").addEventListener("click", () => {
+      if (rows.children.length >= 5) {
+        alert("M&aacute;ximo 5 atributos por producto.");
+        return;
+      }
+      addRow("modelo", "Valor");
+    });
+  </script>
+</body>
+</html>

@@ -4,9 +4,11 @@
   "description": "Carga de productos en Firestore usando Firebase Admin SDK",
   "main": "load-products.js",
   "scripts": {
-    "load": "node load-products.js"
+    "load": "node load-products.js",
+    "start": "node server.js"
   },
   "dependencies": {
+    "express": "^4.22.2",
     "firebase-admin": "^12.0.0"
   }
 }
