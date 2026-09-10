@@ -3,6 +3,7 @@
 //  Uso: npm install && npm start
 // =====================================================
 
+const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const admin = require("firebase-admin");
@@ -15,6 +16,7 @@ admin.initializeApp({
 const db = admin.firestore();
 const app = express();
 const PORT = process.env.PORT || 3000;
+const LOG_FILE = path.join(__dirname, "requests.log");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -29,20 +31,25 @@ function parseValue(value) {
 
 app.post("/add-product", async (req, res) => {
   try {
+    fs.appendFileSync(LOG_FILE, new Date().toISOString() + " " + JSON.stringify(req.body) + "\n");
     const claves = req.body.clave || [];
     const valores = req.body.valor || [];
 
     const data = {};
     for (let i = 0; i < claves.length; i++) {
-      const key = String(claves[i] || "").trim();
-      const val = String(valores[i] || "").trim();
-      if (key && val && !(key in data)) {
-        data[key] = parseValue(val);
+      const rawKey = String(claves[i] || "").trim();
+      const rawVal = String(valores[i] || "").trim();
+      if (rawKey && rawVal) {
+        const key = rawKey.toLowerCase() === "nombre" ? "nombre" : rawKey;
+        if (!(key in data)) {
+          data[key] = key === "nombre" ? rawVal : parseValue(rawVal);
+        }
       }
     }
 
     const attributeCount = Object.keys(data).length;
-    if (attributeCount === 0 || !data.nombre) {
+    const hasNombre = data.nombre !== undefined && data.nombre !== "";
+    if (attributeCount === 0 || !hasNombre) {
       return res.status(400).send(page(false, "ERROR: el producto debe tener al menos el atributo \"nombre\"."));
     }
     if (attributeCount > 5) {
