@@ -2,44 +2,170 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cargar Producto - Firestore</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 520px; margin: 40px auto; }
-    h1 { font-size: 1.4rem; }
-    .row { display: flex; gap: 8px; margin-bottom: 8px; }
-    .row input { padding: 8px; font-size: 1rem; }
-    .row input[name="clave[]"] { width: 130px; }
-    .row input[name="valor[]"] { flex: 1; }
-    button { padding: 10px 16px; font-size: 1rem; cursor: pointer; }
-    .hint { color: #666; font-size: .85rem; }
+    :root {
+      --pink: #ff5ca8;
+      --cyan: #00f0ff;
+      --purple: #bc6cff;
+      --orange: #ffb86b;
+      --dark: #0b0f2b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Segoe UI", system-ui, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--dark);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(188, 108, 255, 0.22), transparent 40%),
+        radial-gradient(circle at 85% 15%, rgba(0, 240, 255, 0.18), transparent 40%),
+        radial-gradient(circle at 75% 85%, rgba(255, 92, 168, 0.18), transparent 40%),
+        radial-gradient(circle at 20% 90%, rgba(255, 184, 107, 0.12), transparent 40%);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.18);
+      border-radius: 20px;
+      padding: 34px 32px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #fff;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--dark);
+      background: linear-gradient(90deg, var(--cyan), var(--orange));
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+    }
+
+    .hint { color: rgba(255, 255, 255, 0.55); font-size: 0.85rem; margin-bottom: 22px; }
+    .hint b { color: var(--orange); }
+
+    .row { display: flex; gap: 10px; margin-bottom: 12px; }
+
+    input {
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    input::placeholder { color: rgba(255, 255, 255, 0.35); }
+    input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15);
+    }
+    input[name="clave[]"] { width: 140px; color: var(--pink); font-weight: 600; }
+    input[name="clave[]"]:focus { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(255, 92, 168, 0.15); }
+    input[name="valor[]"] { flex: 1; }
+    input[readonly] { background: rgba(188, 108, 255, 0.14); border-color: var(--purple); cursor: default; }
+
+    .actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; }
+
+    button {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 20px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+    }
+    button:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    button:active { transform: translateY(0); }
+
+    #addRow {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--orange);
+      border: 1px dashed rgba(255, 184, 107, 0.45);
+      border-radius: 12px;
+      padding: 10px 16px;
+    }
+    #addRow:hover { background: rgba(255, 184, 107, 0.12); box-shadow: 0 0 18px rgba(255, 184, 107, 0.25); }
+
+    button[type="submit"] {
+      color: var(--dark);
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan));
+      background-size: 200% auto;
+      box-shadow: 0 6px 24px rgba(255, 92, 168, 0.35);
+    }
+    button[type="submit"]:hover { background-position: right center; box-shadow: 0 6px 28px rgba(0, 240, 255, 0.35); }
+
+    .count {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 14px;
+      text-align: right;
+    }
+    .count span { color: var(--cyan); font-weight: 700; }
   </style>
 </head>
 <body>
-  <h1>Cargar nuevo producto</h1>
-  <p class="hint">M&aacute;ximo 5 atributos. La primera fila es el <b>nombre</b> del producto.</p>
+  <div class="card">
+    <span class="badge">Firestore &bull; productos</span>
+    <h1>Cargar nuevo producto</h1>
+    <p class="hint">M&aacute;ximo 5 atributos. La primera fila es el <b>nombre</b> del producto.</p>
 
-  <form method="POST" action="/add-product" id="form">
-    <div id="rows">
-      <div class="row">
-        <input type="text" name="clave[]" value="nombre" readonly>
-        <input type="text" name="valor[]" placeholder="Nombre del producto" required>
+    <form method="POST" action="/add-product" id="form">
+      <div id="rows">
+        <div class="row">
+          <input type="text" name="clave[]" value="nombre" readonly>
+          <input type="text" name="valor[]" placeholder="Nombre del producto" required>
+        </div>
+        <div class="row">
+          <input type="text" name="clave[]" placeholder="precio">
+          <input type="text" name="valor[]" placeholder="Valor (ej: 499)">
+        </div>
+        <div class="row">
+          <input type="text" name="clave[]" placeholder="color">
+          <input type="text" name="valor[]" placeholder="Valor (ej: Negro)">
+        </div>
       </div>
-      <div class="row">
-        <input type="text" name="clave[]" placeholder="precio">
-        <input type="text" name="valor[]" placeholder="Valor (ej: 499)">
+
+      <div class="actions">
+        <button type="button" id="addRow">+ Agregar atributo</button>
+        <button type="submit">Guardar producto &rarr;</button>
       </div>
-      <div class="row">
-        <input type="text" name="clave[]" placeholder="color">
-        <input type="text" name="valor[]" placeholder="Valor (ej: Negro)">
-      </div>
-    </div>
-    <button type="button" id="addRow">+ agregar atributo</button>
-    <br><br>
-    <button type="submit">Guardar producto</button>
-  </form>
+      <p class="count">Atributos: <span id="counter">3</span> / 5</p>
+    </form>
+  </div>
 
   <script>
     const rows = document.getElementById("rows");
+    const counter = document.getElementById("counter");
+
+    function updateCounter() {
+      counter.textContent = rows.children.length;
+    }
 
     function addRow(emptyKey, emptyVal) {
       const row = document.createElement("div");
@@ -50,11 +176,12 @@
       v.type = "text"; v.name = "valor[]"; v.placeholder = emptyVal;
       row.appendChild(k); row.appendChild(v);
       rows.appendChild(row);
+      updateCounter();
     }
 
     document.getElementById("addRow").addEventListener("click", () => {
       if (rows.children.length >= 5) {
-        alert("M&aacute;ximo 5 atributos por producto.");
+        alert("Máximo 5 atributos por producto.");
         return;
       }
       addRow("modelo", "Valor");
